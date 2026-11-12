@@ -10,7 +10,7 @@ export interface NoteStats {
 /** Simple utility to calculate stats for a given markdown/plain text */
 export function calculateNoteStats(text: string): NoteStats {
   const trimmed = text.trim();
-  const lines = text.split('\n').length;
+  const lines = text.length === 0 ? 0 : text.split('\n').length;
   const words = trimmed ? trimmed.split(/\s+/).length : 0;
   const characters = trimmed.length;
   const banglaChars = (trimmed.match(/[\u0980-\u09FF]/g) || []).length;
