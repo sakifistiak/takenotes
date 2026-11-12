@@ -1,6 +1,7 @@
 // src/services/export.ts
-// Simple export utilities for TakeNotes – Markdown, plain text, and printing.
+// Export utilities for TakeNotes: Markdown, plain text, printing, and workspace backup.
 
+/** Export a note as a Markdown file */
 export function exportNoteAsMarkdown(note: { title: string; content: string }) {
   const md = `# ${note.title}\n\n${note.content}`;
   const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
@@ -12,6 +13,7 @@ export function exportNoteAsMarkdown(note: { title: string; content: string }) {
   URL.revokeObjectURL(url);
 }
 
+/** Export a note as a plain‑text file */
 export function exportNoteAsPlainText(note: { title: string; content: string }) {
   const txt = `${note.title}\n\n${note.content}`;
   const blob = new Blob([txt], { type: 'text/plain;charset=utf-8' });
@@ -23,6 +25,7 @@ export function exportNoteAsPlainText(note: { title: string; content: string }) 
   URL.revokeObjectURL(url);
 }
 
+/** Print a note in a new window */
 export function printNote(note: { title: string; content: string }) {
   const printWindow = window.open('', '_blank');
   if (!printWindow) return;
@@ -37,4 +40,39 @@ export function printNote(note: { title: string; content: string }) {
   printWindow.document.close();
   printWindow.focus();
   setTimeout(() => printWindow.print(), 300);
+}
+
+/** Export the entire workspace (folders & notes) as a downloadable JSON file */
+export function exportWorkspaceBackup(folders: any[], notes: any[]): Blob {
+  const data = JSON.stringify({ folders, notes }, null, 2);
+  const blob = new Blob([data], { type: 'application/json;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'takenotes-backup.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  return blob;
+}
+
+/** Overloads for parsing a workspace backup */
+export function parseWorkspaceBackup(input: string): { folders: any[]; notes: any[] };
+export function parseWorkspaceBackup(input: Blob): Promise<{ folders: any[]; notes: any[] }>;
+export function parseWorkspaceBackup(input: any): any {
+  if (typeof input === 'string') {
+    const parsed = JSON.parse(input);
+    if (!Array.isArray(parsed.folders) || !Array.isArray(parsed.notes)) {
+      throw new Error('Invalid backup structure');
+    }
+    return { folders: parsed.folders, notes: parsed.notes };
+  }
+  // Assume Blob
+  return (async () => {
+    const text = await input.text();
+    const parsed = JSON.parse(text);
+    if (!Array.isArray(parsed.folders) || !Array.isArray(parsed.notes)) {
+      throw new Error('Invalid backup structure');
+    }
+    return { folders: parsed.folders, notes: parsed.notes };
+  })();
 }

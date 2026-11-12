@@ -24,24 +24,19 @@ export const BackupModal: React.FC<BackupModalProps> = ({
     setStatusMsg({ type: 'success', text: 'সব নোট সফলভাবে ডাউনলোড হয়েছে (Backup downloaded).' });
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      try {
-        const text = event.target?.result as string;
-        const backup = parseWorkspaceBackup(text);
-        onRestore(backup.folders, backup.notes);
-        setStatusMsg({ type: 'success', text: 'ব্যাকআপ সফলভাবে রিস্টোর হয়েছে (Backup restored successfully)!' });
-        setTimeout(() => onClose(), 1200);
-      } catch (err) {
-        setStatusMsg({ type: 'error', text: 'অকার্যকর ব্যাকআপ ফাইল (Invalid backup file).' });
-      }
-    };
-    reader.readAsText(file);
+    try {
+      const backup = await parseWorkspaceBackup(file);
+      onRestore(backup.folders, backup.notes);
+      setStatusMsg({ type: 'success', text: 'ব্যাকআপ সফলভাবে রিস্টোর হয়েছে (Backup restored successfully)!' });
+      setTimeout(() => onClose(), 1200);
+    } catch (err) {
+      setStatusMsg({ type: 'error', text: 'অকার্যকর ব্যাকআপ ফাইল (Invalid backup file).' });
+    }
   };
+
 
   return (
     <div className="modal-overlay" onClick={onClose}>

@@ -1,0 +1,17 @@
+{
+  "name": "TakeNotes",
+  "short_name": "TakeNotes",
+  "description": "Minimalist bilingual online notebook",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "sizes": "48x48 72x72 96x96 128x128 256x256",
+      "type": "image/svg+xml"
+    }
+  ]
+}

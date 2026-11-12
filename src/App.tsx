@@ -15,7 +15,7 @@ import {
   INITIAL_WELCOME_NOTE,
   saveFolderToStorage,
   saveNoteToStorage
-} from './services/storage';
+} from './services';
 
 export const App: React.FC = () => {
   const [notes, setNotes] = useState<Note[]>([]);

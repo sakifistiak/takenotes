@@ -21,7 +21,7 @@ function base64ToBuffer(b64: string): ArrayBuffer {
 }
 
 /** Derive a 256‑bit key from a password and random salt using PBKDF2 */
-async function deriveKey(password: string, salt: Uint8Array): Promise<CryptoKey> {
+async function deriveKey(password: string, salt: ArrayBuffer): Promise<CryptoKey> {
   const enc = new TextEncoder();
   const keyMaterial = await crypto.subtle.importKey(
     'raw',
@@ -33,7 +33,7 @@ async function deriveKey(password: string, salt: Uint8Array): Promise<CryptoKey>
   return crypto.subtle.deriveKey(
     {
       name: 'PBKDF2',
-      salt,
+      salt: new Uint8Array(salt),
       iterations: 100_000,
       hash: 'SHA-256'
     },
@@ -49,7 +49,8 @@ export async function encryptText(plain: string, password: string): Promise<Cryp
   const enc = new TextEncoder();
   const iv = crypto.getRandomValues(new Uint8Array(12)); // 96‑bit nonce
   const salt = crypto.getRandomValues(new Uint8Array(16));
-  const key = await deriveKey(password, salt);
+  const key = await deriveKey(password, salt.buffer);
+
   const ciphertext = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, enc.encode(plain));
   return {
     ciphertext: bufferToBase64(ciphertext),
@@ -61,7 +62,8 @@ export async function encryptText(plain: string, password: string): Promise<Cryp
 /** Decrypt CryptoPayload with password → plaintext */
 export async function decryptText(payload: CryptoPayload, password: string): Promise<string> {
   const { ciphertext, iv, salt } = payload;
-  const key = await deriveKey(password, new Uint8Array(base64ToBuffer(salt)));
+  const key = await deriveKey(password, new Uint8Array(base64ToBuffer(salt)).buffer);
+
   const plainBuf = await crypto.subtle.decrypt(
     { name: 'AES-GCM', iv: new Uint8Array(base64ToBuffer(iv)) },
     key,
